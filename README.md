@@ -42,3 +42,14 @@ pnpm zip
 ## 说明
 
 本项目使用 DeepSeek 网页端非公开 API，仅供学习和个人使用。DeepSeek 可能随时调整接口实现。
+
+**本扩展不是 DeepSeek 官方产品。**
+
+## 上架 Chrome 网上应用店
+
+- 隐私政策：[docs/PRIVACY.md](./docs/PRIVACY.md)
+- 上架步骤与商店文案：[docs/CHROME_WEB_STORE.md](./docs/CHROME_WEB_STORE.md)
+
+```bash
+pnpm zip   # 生成可上传商店的 zip 包
+```

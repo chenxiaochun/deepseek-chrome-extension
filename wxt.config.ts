@@ -7,8 +7,9 @@ export default defineConfig({
     plugins: [tailwindcss()],
   }),
   manifest: {
-    name: 'DeepSeek',
-    description: 'DeepSeek 聊天助手，与网页端会话同步',
+    name: 'DeepSeek 侧边栏助手（非官方）',
+    description:
+      '在浏览器侧边栏使用 DeepSeek 网页账号聊天，与 chat.deepseek.com 同步会话。非 DeepSeek 官方产品。',
     permissions: ['storage', 'sidePanel', 'webRequest', 'cookies', 'tabs'],
     host_permissions: ['https://chat.deepseek.com/*'],
     side_panel: {
