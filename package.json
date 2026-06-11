@@ -1,0 +1,33 @@
+{
+  "name": "deepseek-chrome-extension",
+  "description": "DeepSeek Chrome extension with web chat sync",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "wxt",
+    "dev:firefox": "wxt -b firefox",
+    "build": "wxt build",
+    "build:firefox": "wxt build -b firefox",
+    "zip": "wxt zip",
+    "zip:firefox": "wxt zip -b firefox",
+    "postinstall": "wxt prepare && node scripts/copy-wasm.mjs"
+  },
+  "dependencies": {
+    "deepseek-driver": "^0.1.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1",
+    "zustand": "^5.0.5"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.1.8",
+    "@types/react": "^19.1.6",
+    "@types/react-dom": "^19.1.5",
+    "@wxt-dev/module-react": "^1.1.3",
+    "tailwindcss": "^4.1.8",
+    "typescript": "^5.8.3",
+    "wxt": "^0.20.7"
+  }
+}
