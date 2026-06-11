@@ -1,10 +1,9 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Textarea } from '@/components/ui/textarea';
@@ -28,18 +27,34 @@ export function ChatArea() {
   const [input, setInput] = useState('');
   const [thinkingEnabled, setThinkingEnabled] = useState(false);
   const [searchEnabled, setSearchEnabled] = useState(true);
+  const messagesRef = useRef<HTMLDivElement>(null);
+  const shouldStickToBottomRef = useRef(true);
+
+  useEffect(() => {
+    const container = messagesRef.current;
+    if (!container || !shouldStickToBottomRef.current) return;
+    container.scrollTop = container.scrollHeight;
+  }, [messages, stream.thinking, stream.response, stream.isStreaming, isLoadingMessages]);
+
+  const handleMessagesScroll = () => {
+    const container = messagesRef.current;
+    if (!container) return;
+    const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
+    shouldStickToBottomRef.current = distanceFromBottom < 80;
+  };
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     if (!input.trim() || stream.isStreaming) return;
     const value = input;
     setInput('');
+    shouldStickToBottomRef.current = true;
     await sendMessage(value, { thinkingEnabled, searchEnabled });
   };
 
   return (
-    <main className="bg-background flex min-w-0 flex-1 flex-col">
-      <header className="border-border flex items-center justify-between border-b px-5 py-3">
+    <main className="bg-background flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+      <header className="border-border shrink-0 flex items-center justify-between border-b px-5 py-3">
         <div>
           <div className="flex items-center gap-2">
             <h2 className="text-sm font-medium">DeepSeek 对话</h2>
@@ -51,7 +66,11 @@ export function ChatArea() {
         </div>
       </header>
 
-      <ScrollArea className="flex-1 px-5 py-4">
+      <div
+        ref={messagesRef}
+        onScroll={handleMessagesScroll}
+        className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-4"
+      >
         <div className="space-y-4">
           {isLoadingMessages ? (
             <div className="space-y-3">
@@ -81,16 +100,16 @@ export function ChatArea() {
             />
           ) : null}
         </div>
-      </ScrollArea>
+      </div>
 
       {error ? (
-        <Alert variant="destructive" className="mx-5 mb-2">
+        <Alert variant="destructive" className="mx-5 mb-2 shrink-0">
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       ) : null}
 
-      <Separator />
-      <form onSubmit={(event) => void handleSubmit(event)} className="p-4">
+      <Separator className="shrink-0" />
+      <form onSubmit={(event) => void handleSubmit(event)} className="shrink-0 p-4">
         <div className="mb-3 flex flex-wrap items-center gap-4">
           {!currentSessionId ? (
             <div className="flex items-center gap-2">

@@ -3,6 +3,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { LoginPrompt } from '@/components/Auth/LoginPrompt';
 import { Sidebar } from '@/components/Sidebar/Sidebar';
 import { ChatArea } from '@/components/Chat/ChatArea';
+import { ThemeSwitcher } from '@/components/Theme/ThemeSwitcher';
 import { useAuthStore } from '@/stores/authStore';
 import { useChatStore } from '@/stores/chatStore';
 import { useThemeStore } from '@/stores/themeStore';
@@ -28,7 +29,10 @@ export default function App() {
 
   if (!isReady || isLoading) {
     return (
-      <div className="bg-background flex h-screen flex-col items-center justify-center gap-3 px-6">
+      <div className="bg-background relative flex h-full flex-col items-center justify-center gap-3 px-6">
+        <div className="absolute top-3 right-3 z-10">
+          <ThemeSwitcher />
+        </div>
         <Skeleton className="h-10 w-40" />
         <p className="text-muted-foreground text-sm">加载中...</p>
       </div>
@@ -36,11 +40,21 @@ export default function App() {
   }
 
   if (!token) {
-    return <LoginPrompt />;
+    return (
+      <div className="relative h-full">
+        <div className="absolute top-3 right-3 z-10">
+          <ThemeSwitcher />
+        </div>
+        <LoginPrompt />
+      </div>
+    );
   }
 
   return (
-    <div className="bg-background text-foreground flex h-screen overflow-hidden">
+    <div className="bg-background text-foreground relative flex h-full min-h-0 overflow-hidden">
+      <div className="absolute top-3 right-3 z-10">
+        <ThemeSwitcher />
+      </div>
       <Sidebar />
       <ChatArea />
     </div>

@@ -18,9 +18,8 @@ export function ThemeSwitcher() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="sm" className="gap-2">
+        <Button variant="ghost" size="icon" aria-label="切换主题" className="size-8">
           <Palette className="size-4" />
-          主题
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-48">

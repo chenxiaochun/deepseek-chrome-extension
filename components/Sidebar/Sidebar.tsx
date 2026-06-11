@@ -3,7 +3,6 @@ import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ThemeSwitcher } from '@/components/Theme/ThemeSwitcher';
 import { useChatStore } from '@/stores/chatStore';
 import { useAuthStore } from '@/stores/authStore';
 import { MODEL_TYPE_LABELS } from '@/types/chat';
@@ -15,13 +14,12 @@ export function Sidebar() {
   const { logout } = useAuthStore();
 
   return (
-    <aside className="bg-sidebar text-sidebar-foreground border-sidebar-border flex w-[260px] shrink-0 flex-col border-r">
-      <div className="border-sidebar-border space-y-3 border-b p-3">
+    <aside className="bg-sidebar text-sidebar-foreground border-sidebar-border flex min-h-0 w-[260px] shrink-0 flex-col overflow-hidden border-r">
+      <div className="border-sidebar-border shrink-0 border-b p-3">
         <NewChatButton />
-        <ThemeSwitcher />
       </div>
 
-      <ScrollArea className="flex-1 p-2">
+      <ScrollArea className="min-h-0 flex-1 p-2">
         {isLoadingSessions ? (
           <div className="space-y-2 px-2 py-3">
             <Skeleton className="h-10 w-full" />
@@ -70,8 +68,8 @@ export function Sidebar() {
         )}
       </ScrollArea>
 
-      <Separator />
-      <div className="p-3">
+      <Separator className="shrink-0" />
+      <div className="shrink-0 p-3">
         <Button variant="ghost" className="w-full justify-start" onClick={() => void logout()}>
           退出登录
         </Button>
