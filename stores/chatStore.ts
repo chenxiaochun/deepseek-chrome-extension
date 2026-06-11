@@ -1,10 +1,11 @@
 import { createDeepSeekClient } from '@/services/deepseekClient';
-import type { ChatMessage, ChatSession, StreamState } from '@/types/chat';
+import type { ChatMessage, ChatSession, ModelType, StreamState } from '@/types/chat';
 import { create } from 'zustand';
 
 interface ChatState {
   sessions: ChatSession[];
   currentSessionId: string | null;
+  currentModelType: ModelType;
   messages: ChatMessage[];
   isLoadingSessions: boolean;
   isLoadingMessages: boolean;
@@ -12,9 +13,13 @@ interface ChatState {
   error: string | null;
   loadSessions: () => Promise<void>;
   selectSession: (sessionId: string) => Promise<void>;
-  createSession: () => Promise<void>;
+  createSession: (modelType: ModelType) => Promise<void>;
+  setCurrentModelType: (modelType: ModelType) => void;
   deleteSession: (sessionId: string) => Promise<void>;
-  sendMessage: (prompt: string, options?: { thinkingEnabled?: boolean; searchEnabled?: boolean }) => Promise<void>;
+  sendMessage: (
+    prompt: string,
+    options?: { thinkingEnabled?: boolean; searchEnabled?: boolean; modelType?: ModelType },
+  ) => Promise<void>;
   reset: () => void;
 }
 
@@ -27,6 +32,7 @@ const emptyStream: StreamState = {
 export const useChatStore = create<ChatState>((set, get) => ({
   sessions: [],
   currentSessionId: null,
+  currentModelType: 'default',
   messages: [],
   isLoadingSessions: false,
   isLoadingMessages: false,
@@ -37,6 +43,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
     set({
       sessions: [],
       currentSessionId: null,
+      currentModelType: 'default',
       messages: [],
       stream: emptyStream,
       error: null,
@@ -54,6 +61,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
           title: s.title || '新对话',
           pinned: s.pinned,
           updatedAt: String(s.updated_at),
+          modelType: normalizeModelType(s.model_type),
         })),
         isLoadingSessions: false,
       });
@@ -66,7 +74,14 @@ export const useChatStore = create<ChatState>((set, get) => ({
   },
 
   selectSession: async (sessionId) => {
-    set({ currentSessionId: sessionId, isLoadingMessages: true, error: null, messages: [] });
+    const session = get().sessions.find((item) => item.id === sessionId);
+    set({
+      currentSessionId: sessionId,
+      currentModelType: session?.modelType ?? 'default',
+      isLoadingMessages: true,
+      error: null,
+      messages: [],
+    });
     try {
       const client = await createDeepSeekClient();
       const history = await client.getHistoryMessages(sessionId);
@@ -86,7 +101,11 @@ export const useChatStore = create<ChatState>((set, get) => ({
           status: 'done',
         };
       });
-      set({ messages, isLoadingMessages: false });
+      set({
+        messages,
+        currentModelType: normalizeModelType(history.chat_session.model_type),
+        isLoadingMessages: false,
+      });
     } catch (error) {
       set({
         isLoadingMessages: false,
@@ -95,13 +114,21 @@ export const useChatStore = create<ChatState>((set, get) => ({
     }
   },
 
-  createSession: async () => {
+  setCurrentModelType: (modelType) => {
+    set({ currentModelType: modelType });
+  },
+
+  createSession: async (modelType) => {
     set({ error: null });
     try {
       const client = await createDeepSeekClient();
       const session = await client.createSession();
       await get().loadSessions();
-      set({ currentSessionId: session.id, messages: [] });
+      set({
+        currentSessionId: session.id,
+        currentModelType: modelType,
+        messages: [],
+      });
     } catch (error) {
       set({ error: error instanceof Error ? error.message : '创建会话失败' });
     }
@@ -115,7 +142,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
       const { currentSessionId } = get();
       await get().loadSessions();
       if (currentSessionId === sessionId) {
-        set({ currentSessionId: null, messages: [] });
+        set({ currentSessionId: null, currentModelType: 'default', messages: [] });
       }
     } catch (error) {
       set({ error: error instanceof Error ? error.message : '删除会话失败' });
@@ -123,16 +150,17 @@ export const useChatStore = create<ChatState>((set, get) => ({
   },
 
   sendMessage: async (prompt, options = {}) => {
-    const { currentSessionId, messages } = get();
+    const { currentSessionId, currentModelType, messages } = get();
     if (!prompt.trim()) return;
 
     let sessionId = currentSessionId;
+    const modelType = options.modelType ?? currentModelType;
     const client = await createDeepSeekClient();
 
     if (!sessionId) {
       const session = await client.createSession();
       sessionId = session.id;
-      set({ currentSessionId: sessionId });
+      set({ currentSessionId: sessionId, currentModelType: modelType });
       await get().loadSessions();
     }
 
@@ -154,6 +182,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
       for await (const event of client.sendMessage({
         chatSessionId: sessionId,
         prompt: prompt.trim(),
+        modelType,
         thinkingEnabled: options.thinkingEnabled ?? false,
         searchEnabled: options.searchEnabled ?? true,
       })) {
@@ -187,3 +216,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
     }
   },
 }));
+
+function normalizeModelType(modelType?: string | null): ModelType {
+  return modelType === 'expert' ? 'expert' : 'default';
+}

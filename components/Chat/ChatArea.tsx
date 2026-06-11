@@ -1,15 +1,19 @@
 import { useState } from 'react';
 import { useChatStore } from '@/stores/chatStore';
+import type { ModelType } from '@/types/chat';
+import { MODEL_TYPE_LABELS } from '@/types/chat';
 import { MessageItem } from './MessageItem';
 
 export function ChatArea() {
   const {
     currentSessionId,
+    currentModelType,
     messages,
     stream,
     isLoadingMessages,
     error,
     sendMessage,
+    setCurrentModelType,
   } = useChatStore();
   const [input, setInput] = useState('');
   const [thinkingEnabled, setThinkingEnabled] = useState(false);
@@ -27,9 +31,14 @@ export function ChatArea() {
     <main className="flex min-w-0 flex-1 flex-col">
       <header className="flex items-center justify-between border-b border-gray-200 px-5 py-3">
         <div>
-          <h2 className="text-sm font-medium text-gray-900">DeepSeek 对话</h2>
+          <div className="flex items-center gap-2">
+            <h2 className="text-sm font-medium text-gray-900">DeepSeek 对话</h2>
+            <span className="rounded-full bg-[#eef2ff] px-2 py-0.5 text-[11px] font-medium text-[#4d6bfe]">
+              {MODEL_TYPE_LABELS[currentModelType]}
+            </span>
+          </div>
           <p className="text-xs text-gray-400">
-            {currentSessionId ? '已与网页端账号同步' : '发送消息将自动创建新会话'}
+            {currentSessionId ? '已与网页端账号同步' : '发送消息将按当前模式自动创建新会话'}
           </p>
         </div>
       </header>
@@ -66,7 +75,26 @@ export function ChatArea() {
       ) : null}
 
       <form onSubmit={(event) => void handleSubmit(event)} className="border-t border-gray-200 p-4">
-        <div className="mb-3 flex items-center gap-4 text-xs text-gray-500">
+        <div className="mb-3 flex flex-wrap items-center gap-4 text-xs text-gray-500">
+          {!currentSessionId ? (
+            <div className="flex items-center gap-2">
+              <span>模式</span>
+              {(['default', 'expert'] as ModelType[]).map((mode) => (
+                <button
+                  key={mode}
+                  type="button"
+                  onClick={() => setCurrentModelType(mode)}
+                  className={`rounded-full px-2.5 py-1 transition ${
+                    currentModelType === mode
+                      ? 'bg-[#4d6bfe] text-white'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  {MODEL_TYPE_LABELS[mode]}
+                </button>
+              ))}
+            </div>
+          ) : null}
           <label className="flex items-center gap-2">
             <input
               type="checkbox"

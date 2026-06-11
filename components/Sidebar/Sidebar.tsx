@@ -1,22 +1,16 @@
 import { useChatStore } from '@/stores/chatStore';
 import { useAuthStore } from '@/stores/authStore';
+import { MODEL_TYPE_LABELS } from '@/types/chat';
+import { NewChatButton } from './NewChatButton';
 
 export function Sidebar() {
-  const { sessions, currentSessionId, isLoadingSessions, createSession, selectSession, deleteSession } =
-    useChatStore();
+  const { sessions, currentSessionId, isLoadingSessions, selectSession, deleteSession } = useChatStore();
   const { logout } = useAuthStore();
 
   return (
     <aside className="flex w-[260px] shrink-0 flex-col border-r border-gray-200 bg-[#f9fafb]">
       <div className="border-b border-gray-200 p-3">
-        <button
-          type="button"
-          onClick={() => void createSession()}
-          className="flex w-full items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm font-medium text-gray-800 transition hover:bg-gray-50"
-        >
-          <span className="text-lg leading-none">+</span>
-          新对话
-        </button>
+        <NewChatButton />
       </div>
 
       <div className="flex-1 overflow-y-auto p-2">
@@ -40,6 +34,11 @@ export function Sidebar() {
                     }`}
                   >
                     <span className="line-clamp-2">{session.title}</span>
+                    {session.modelType ? (
+                      <span className="mt-1 block text-[11px] text-gray-400">
+                        {MODEL_TYPE_LABELS[session.modelType]}
+                      </span>
+                    ) : null}
                   </button>
                   <button
                     type="button"
