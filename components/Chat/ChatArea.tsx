@@ -1,4 +1,14 @@
 import { useState } from 'react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Separator } from '@/components/ui/separator';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Textarea } from '@/components/ui/textarea';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { useChatStore } from '@/stores/chatStore';
 import type { ModelType } from '@/types/chat';
 import { MODEL_TYPE_LABELS } from '@/types/chat';
@@ -28,97 +38,97 @@ export function ChatArea() {
   };
 
   return (
-    <main className="flex min-w-0 flex-1 flex-col">
-      <header className="flex items-center justify-between border-b border-gray-200 px-5 py-3">
+    <main className="bg-background flex min-w-0 flex-1 flex-col">
+      <header className="border-border flex items-center justify-between border-b px-5 py-3">
         <div>
           <div className="flex items-center gap-2">
-            <h2 className="text-sm font-medium text-gray-900">DeepSeek 对话</h2>
-            <span className="rounded-full bg-[#eef2ff] px-2 py-0.5 text-[11px] font-medium text-[#4d6bfe]">
-              {MODEL_TYPE_LABELS[currentModelType]}
-            </span>
+            <h2 className="text-sm font-medium">DeepSeek 对话</h2>
+            <Badge variant="secondary">{MODEL_TYPE_LABELS[currentModelType]}</Badge>
           </div>
-          <p className="text-xs text-gray-400">
+          <p className="text-muted-foreground text-xs">
             {currentSessionId ? '已与网页端账号同步' : '发送消息将按当前模式自动创建新会话'}
           </p>
         </div>
       </header>
 
-      <div className="flex-1 space-y-4 overflow-y-auto px-5 py-4">
-        {isLoadingMessages ? (
-          <p className="text-sm text-gray-400">加载消息中...</p>
-        ) : messages.length === 0 && !stream.isStreaming ? (
-          <div className="flex h-full min-h-[320px] flex-col items-center justify-center text-center">
-            <h3 className="text-lg font-medium text-gray-800">开始和 DeepSeek 对话</h3>
-            <p className="mt-2 max-w-md text-sm text-gray-500">
-              你的会话会保存在 DeepSeek 账号下，网页端和插件里看到的是同一份记录。
-            </p>
-          </div>
-        ) : (
-          messages.map((message) => <MessageItem key={message.id} message={message} />)
-        )}
+      <ScrollArea className="flex-1 px-5 py-4">
+        <div className="space-y-4">
+          {isLoadingMessages ? (
+            <div className="space-y-3">
+              <Skeleton className="h-16 w-2/3" />
+              <Skeleton className="h-24 w-3/4" />
+            </div>
+          ) : messages.length === 0 && !stream.isStreaming ? (
+            <div className="flex min-h-[320px] flex-col items-center justify-center text-center">
+              <h3 className="text-lg font-medium">开始和 DeepSeek 对话</h3>
+              <p className="text-muted-foreground mt-2 max-w-md text-sm">
+                你的会话会保存在 DeepSeek 账号下，网页端和插件里看到的是同一份记录。
+              </p>
+            </div>
+          ) : (
+            messages.map((message) => <MessageItem key={message.id} message={message} />)
+          )}
 
-        {stream.isStreaming ? (
-          <MessageItem
-            message={{
-              id: -1,
-              role: 'assistant',
-              content: stream.response,
-              thinking: stream.thinking || undefined,
-              status: 'streaming',
-            }}
-          />
-        ) : null}
-      </div>
+          {stream.isStreaming ? (
+            <MessageItem
+              message={{
+                id: -1,
+                role: 'assistant',
+                content: stream.response,
+                thinking: stream.thinking || undefined,
+                status: 'streaming',
+              }}
+            />
+          ) : null}
+        </div>
+      </ScrollArea>
 
       {error ? (
-        <div className="mx-5 mb-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{error}</div>
+        <Alert variant="destructive" className="mx-5 mb-2">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
       ) : null}
 
-      <form onSubmit={(event) => void handleSubmit(event)} className="border-t border-gray-200 p-4">
-        <div className="mb-3 flex flex-wrap items-center gap-4 text-xs text-gray-500">
+      <Separator />
+      <form onSubmit={(event) => void handleSubmit(event)} className="p-4">
+        <div className="mb-3 flex flex-wrap items-center gap-4">
           {!currentSessionId ? (
             <div className="flex items-center gap-2">
-              <span>模式</span>
-              {(['default', 'expert'] as ModelType[]).map((mode) => (
-                <button
-                  key={mode}
-                  type="button"
-                  onClick={() => setCurrentModelType(mode)}
-                  className={`rounded-full px-2.5 py-1 transition ${
-                    currentModelType === mode
-                      ? 'bg-[#4d6bfe] text-white'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                  }`}
-                >
-                  {MODEL_TYPE_LABELS[mode]}
-                </button>
-              ))}
+              <span className="text-muted-foreground text-xs">模式</span>
+              <ToggleGroup
+                type="single"
+                size="sm"
+                value={currentModelType}
+                onValueChange={(value) => {
+                  if (value) setCurrentModelType(value as ModelType);
+                }}
+              >
+                {(['default', 'expert'] as ModelType[]).map((mode) => (
+                  <ToggleGroupItem key={mode} value={mode}>
+                    {MODEL_TYPE_LABELS[mode]}
+                  </ToggleGroupItem>
+                ))}
+              </ToggleGroup>
             </div>
           ) : null}
-          <label className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              checked={thinkingEnabled}
-              onChange={(event) => setThinkingEnabled(event.target.checked)}
-            />
+
+          <Label className="text-muted-foreground text-xs font-normal">
+            <Checkbox checked={thinkingEnabled} onCheckedChange={(checked) => setThinkingEnabled(checked === true)} />
             深度思考
-          </label>
-          <label className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              checked={searchEnabled}
-              onChange={(event) => setSearchEnabled(event.target.checked)}
-            />
+          </Label>
+          <Label className="text-muted-foreground text-xs font-normal">
+            <Checkbox checked={searchEnabled} onCheckedChange={(checked) => setSearchEnabled(checked === true)} />
             联网搜索
-          </label>
+          </Label>
         </div>
-        <div className="flex items-end gap-3 rounded-2xl border border-gray-200 bg-[#f9fafb] p-3">
-          <textarea
+
+        <div className="bg-muted/40 border-input flex items-end gap-3 rounded-2xl border p-3">
+          <Textarea
             value={input}
             onChange={(event) => setInput(event.target.value)}
             placeholder="给 DeepSeek 发送消息"
             rows={3}
-            className="min-h-[72px] flex-1 resize-none bg-transparent text-sm outline-none placeholder:text-gray-400"
+            className="min-h-[72px] flex-1 resize-none border-0 bg-transparent shadow-none focus-visible:ring-0"
             onKeyDown={(event) => {
               if (event.key === 'Enter' && !event.shiftKey) {
                 event.preventDefault();
@@ -126,13 +136,9 @@ export function ChatArea() {
               }
             }}
           />
-          <button
-            type="submit"
-            disabled={!input.trim() || stream.isStreaming}
-            className="rounded-xl bg-[#4d6bfe] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#3d5be0] disabled:cursor-not-allowed disabled:opacity-50"
-          >
+          <Button type="submit" disabled={!input.trim() || stream.isStreaming}>
             发送
-          </button>
+          </Button>
         </div>
       </form>
     </main>

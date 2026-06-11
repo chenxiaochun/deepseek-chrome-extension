@@ -14,11 +14,24 @@
     "postinstall": "wxt prepare && node scripts/copy-wasm.mjs"
   },
   "dependencies": {
+    "@radix-ui/react-checkbox": "^1.3.4",
+    "@radix-ui/react-collapsible": "^1.1.13",
+    "@radix-ui/react-dropdown-menu": "^2.1.17",
+    "@radix-ui/react-scroll-area": "^1.2.11",
+    "@radix-ui/react-separator": "^1.1.9",
+    "@radix-ui/react-slot": "^1.2.5",
+    "@radix-ui/react-toggle-group": "^1.1.12",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
     "deepseek-driver": "^0.1.0",
+    "lucide-react": "^1.17.0",
+    "radix-ui": "^1.5.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-markdown": "^10.1.0",
     "remark-gfm": "^4.0.1",
+    "tailwind-merge": "^3.6.0",
+    "tw-animate-css": "^1.4.0",
     "zustand": "^5.0.5"
   },
   "devDependencies": {
